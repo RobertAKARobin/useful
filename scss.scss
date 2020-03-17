@@ -78,3 +78,42 @@ $typography-configs: (
   $config: get-type-config($name);
   @include map-to-props($config);
 }
+
+@function sum($list, $force: false) {
+  $result: 0;
+
+  @each $item in $list {
+    @if type-of($item) == number {
+      @if $force and unit($item) {
+        $item: $item / ($item * 0 + 1);
+      }
+      @if unitless($item) {
+        $result: $result + $item;
+      }
+    }
+  }
+
+  @return $result;
+}
+
+@mixin cell-widths($cell-widths) {
+  $cell-widths-sum: sum($cell-widths);
+
+  @for $index from 1 through length($cell-widths) {
+    $cell-width: nth($cell-widths, $index);
+    &:nth-child(#{$index}) {
+      width: #{($cell-width / $cell-widths-sum * 100%)};
+    }
+  }
+}
+
+@mixin hidden() {
+  display: block;
+  height: 1px;
+  left: -9999px;
+  opacity: .001;
+  overflow: hidden;
+  position: absolute;
+  top: -9999px;
+  width: 1px;
+}
