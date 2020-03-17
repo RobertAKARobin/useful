@@ -1,0 +1,80 @@
+$base-font-size: 14;
+
+@function remify($values) {
+  $rems: ();
+
+  @each $value in $values {
+    @if $value == 0 or $value == auto {
+      $rems: append($rems, $value);
+    } @else {
+      $rems: append(
+        $rems,
+        ($value / $base-font-size ) + rem
+      );
+    }
+  }
+
+  @return $rems;
+}
+
+$font-family-hdg: 'Google Sans', sans-serif;
+$font-family-body: 'Roboto', sans-serif;
+$font-family-display: 'Google Sans Display', sans-serif;
+
+// Typography
+// The keys below are how each style is labeled in the Sketch files (when labeled).
+// They're formatted like this so they can be imported into Material's amt-typography-config.
+// Note that font-size and line-height are provided as integers
+// See get-type-config below for more info
+$typography-configs: (
+  'Display 2': ( // Demo detail, donut stat
+    font-family: $font-family-display,
+    font-size: 56,
+    font-weight: 400,
+    letter-spacing: 0,
+    line-height: 64,
+  ),
+  'Display 3': ( // Logo text
+    color: color.$neutral-x3,
+    font-family: $font-family-display,
+    font-size: 20,
+    font-weight: 400,
+    letter-spacing: 0,
+    line-height: 25,
+  ),
+);
+
+// This does a few things:
+// - remifies the font-size
+// - calculates the line-height (as a fraction of the font-size)
+// - Sets a custom property called `--styleguide` to the name of the config. Assuming the names continue to match what's in the Sketch files, this makes it easier to tell what Sketch text rule is being used for which CSS rule when using the browser's inspector for visual QA.
+@function get-type-config($name) {
+  $config: map-get($typography-configs, $name);
+  @if $config == null {
+    @error '#{$name} is not a valid typography.';
+  }
+  $font-size: map-get($config, 'font-size');
+  $formatted-config: map-merge($config, (
+    font-size: remify($font-size),
+    line-height: (map-get($config, 'line-height') / $font-size),
+    --styleguide: $name,
+  ));
+  @return $formatted-config;
+}
+
+@mixin map-to-props($map) {
+  @if type-of($map) == map {
+    @each $prop, $value in $map {
+      @if type-of($value) != map {
+        #{$prop}: #{$value};
+      } @else {
+        @include map-to-props($value);
+      }
+    }
+  }
+}
+
+@mixin typography($name) {
+  $config: get-type-config($name);
+  @include map-to-props($config);
+}
